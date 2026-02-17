@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/test-results
 
 # next.js
 /.next/
@@ -23,6 +24,8 @@
 # misc
 .DS_Store
 *.pem
+*.bak.*
+*.bak
 
 # debug
 npm-debug.log*
@@ -36,6 +39,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# uploads
+/public/uploads
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma

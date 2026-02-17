@@ -1,0 +1,193 @@
+// Prisma schema for FoundIt! (matches your ERD)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  role_id   Int    @id @default(autoincrement())
+  role_name String @db.VarChar(50)
+
+  users     User[]
+
+  @@map("roles")
+}
+
+model User {
+  user_id          Int      @id @default(autoincrement())
+  role_id          Int
+  full_name        String   @db.VarChar(100)
+  id_number        String   @unique @db.VarChar(50)
+  email            String   @unique @db.VarChar(100)
+  password         String   @db.VarChar(100)
+  department       String?  @db.VarChar(50)
+  avatar_url       String?  @db.VarChar(200)
+  date_registered  DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  status           String   @default("ACTIVE") @db.VarChar(20)
+
+  role             Role     @relation(fields: [role_id], references: [role_id])
+
+  lost_items       LostItem[]  @relation("UserLostItems")
+  found_items      FoundItem[] @relation("UserFoundItems")
+
+  claims_submitted Claim[] @relation("UserClaimsSubmitted")
+  claims_verified  Claim[] @relation("UserClaimsVerified")
+
+  notifications   Notification[]
+
+
+  audit_logs       AuditLog[]
+  @@map("users")
+}
+
+model Category {
+  category_id   Int    @id @default(autoincrement())
+  category_name String @unique @db.VarChar(50)
+
+  lost_items    LostItem[]
+  found_items   FoundItem[]
+
+  @@map("categories")
+}
+
+model Location {
+  location_id   Int     @id @default(autoincrement())
+  location_name String  @unique @db.VarChar(100)
+  description   String? @db.Text
+
+  lost_items    LostItem[]
+  found_items   FoundItem[]
+
+  @@map("locations")
+}
+
+model LostItem {
+  lost_id            Int      @id @default(autoincrement())
+  user_id            Int
+  category_id        Int
+  location_id        Int
+  item_name          String   @db.VarChar(100)
+  description        String   @db.Text
+  date_lost          DateTime @db.Date
+  last_seen_location String   @db.VarChar(200)
+  image              String?  @db.VarChar(200)
+  status             String   @default("REPORTED_LOST") @db.VarChar(20)
+  date_created       DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+
+  user               User     @relation("UserLostItems", fields: [user_id], references: [user_id])
+  category           Category @relation(fields: [category_id], references: [category_id])
+  location           Location @relation(fields: [location_id], references: [location_id])
+
+  matches            Match[]  @relation("LostMatches")
+
+  @@index([user_id])
+  @@index([category_id])
+  @@index([location_id])
+  @@map("lost_items")
+}
+
+model FoundItem {
+  found_id         Int      @id @default(autoincrement())
+  user_id          Int
+  category_id      Int
+  location_id      Int
+  item_name        String   @db.VarChar(100)
+  description      String   @db.Text
+  date_found       DateTime @db.Date
+  storage_location String   @db.VarChar(200)
+  image            String?  @db.VarChar(200)
+  status           String   @default("NEWLY_FOUND") @db.VarChar(20)
+  date_created     DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+
+  user             User     @relation("UserFoundItems", fields: [user_id], references: [user_id])
+  category         Category @relation(fields: [category_id], references: [category_id])
+  location         Location @relation(fields: [location_id], references: [location_id])
+
+  matches          Match[]  @relation("FoundMatches")
+  claims           Claim[]
+
+  @@index([user_id])
+  @@index([category_id])
+  @@index([location_id])
+  @@map("found_items")
+}
+
+model Match {
+  match_id     Int      @id @default(autoincrement())
+  lost_id      Int
+  found_id     Int
+  match_score  Decimal  @db.Decimal(5, 2)
+  date_matched DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+
+  lost_item    LostItem @relation("LostMatches", fields: [lost_id], references: [lost_id])
+  found_item   FoundItem @relation("FoundMatches", fields: [found_id], references: [found_id])
+
+  @@unique([lost_id, found_id])
+  @@index([found_id])
+  @@map("matches")
+}
+
+model Claim {
+  claim_id          Int      @id @default(autoincrement())
+  found_id          Int
+  claimant_id       Int
+  verified_by       Int?
+  proof_description String   @db.Text
+  claim_status      String   @default("PENDING") @db.VarChar(20)
+  date_claimed      DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+
+  // ✅ NEW: real timestamp when staff approves/denies
+  reviewed_at       DateTime?
+
+  found_item        FoundItem @relation(fields: [found_id], references: [found_id])
+  claimant          User      @relation("UserClaimsSubmitted", fields: [claimant_id], references: [user_id])
+  verifier          User?     @relation("UserClaimsVerified", fields: [verified_by], references: [user_id])
+
+  @@index([found_id])
+  @@index([claimant_id])
+  @@index([verified_by])
+  @@index([reviewed_at])
+  @@map("claims")
+}
+
+model Notification {
+  notification_id Int      @id @default(autoincrement())
+  user_id         Int
+  type            String   @db.VarChar(30)
+  title           String   @db.VarChar(120)
+  message         String   @db.Text
+  href            String?  @db.VarChar(200)
+  is_read         Boolean  @default(false)
+  created_at      DateTime @default(now())
+
+  user            User     @relation(fields: [user_id], references: [user_id])
+
+  @@index([user_id])
+  @@index([is_read])
+  @@map("notifications")
+}
+
+model AuditLog {
+  audit_id       Int      @id @default(autoincrement())
+  actor_user_id  Int?
+  action         String   @db.VarChar(80)   // e.g. "CLAIM_APPROVED", "FOUND_CREATE"
+  entity_type    String   @db.VarChar(40)   // e.g. "Claim", "FoundItem"
+  entity_id      Int?
+  summary        String?  @db.VarChar(200)
+  meta           Json?
+  ip             String?  @db.VarChar(45)
+  user_agent     String?  @db.VarChar(200)
+  created_at     DateTime @default(now())
+
+  actor User? @relation(fields: [actor_user_id], references: [user_id])
+
+  @@index([actor_user_id])
+  @@index([entity_type, entity_id])
+  @@index([created_at])
+  @@map("audit_logs")
+}
