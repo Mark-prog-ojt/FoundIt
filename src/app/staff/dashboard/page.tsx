@@ -14,6 +14,7 @@ export default async function StaffDashboardPage() {
         take: 50,
         select: {
           claim_id: true,
+          claim_status: true,
           date_claimed: true,
           proof_description: true,
           claimant: { select: { user_id: true, full_name: true, email: true } },
