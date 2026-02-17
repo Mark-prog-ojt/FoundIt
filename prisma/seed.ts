@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import bcrypt from "bcryptjs";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -31,6 +32,10 @@ async function main() {
     throw new Error("Roles not found after seeding.");
   }
 
+  const adminPass = await bcrypt.hash("admin123", 12);
+  const staffPass = await bcrypt.hash("staff123", 12);
+  const userPass = await bcrypt.hash("user123", 12);
+
   // 2) Categories
   await prisma.category.createMany({
     data: [
@@ -59,13 +64,17 @@ async function main() {
   // 4) Demo users (plain text for now; will hash in Auth step)
   await prisma.user.upsert({
     where: { email: "admin@foundit.local" },
-    update: {},
+    update: {
+      role_id: adminRole.role_id,
+      password: adminPass,
+      status: "ACTIVE",
+    },
     create: {
       role_id: adminRole.role_id,
       full_name: "Demo Admin",
       id_number: "A-0001",
       email: "admin@foundit.local",
-      password: "admin123",
+      password: adminPass,
       department: "IT",
       status: "ACTIVE",
     },
@@ -73,13 +82,17 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "staff@foundit.local" },
-    update: {},
+    update: {
+      role_id: staffRole.role_id,
+      password: staffPass,
+      status: "ACTIVE",
+    },
     create: {
       role_id: staffRole.role_id,
       full_name: "Demo Staff",
       id_number: "S-0001",
       email: "staff@foundit.local",
-      password: "staff123",
+      password: staffPass,
       department: "Security Office",
       status: "ACTIVE",
     },
@@ -87,13 +100,17 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "user@foundit.local" },
-    update: {},
+    update: {
+      role_id: userRole.role_id,
+      password: userPass,
+      status: "ACTIVE",
+    },
     create: {
       role_id: userRole.role_id,
       full_name: "Demo User",
       id_number: "U-0001",
       email: "user@foundit.local",
-      password: "user123",
+      password: userPass,
       department: "Engineering",
       status: "ACTIVE",
     },
