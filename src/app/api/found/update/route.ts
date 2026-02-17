@@ -31,7 +31,7 @@ function pickBeforeForMeta(before: Record<string, any>, keys: string[]) {
   return out;
 }
 
-function isLocalFoundUpload(u: string | null | undefined) {
+function isLocalFoundUpload(u: string | null | undefined): u is string {
   return typeof u === "string" && u.startsWith("/uploads/found/");
 }
 
