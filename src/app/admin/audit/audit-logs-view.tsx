@@ -301,13 +301,15 @@ export function AuditLogsView() {
     ? "Loading…"
     : `Showing ${filteredItems.length} result${filteredItems.length === 1 ? "" : "s"}`;
 
+  const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
   const segmentTransition = prefersReducedMotion
     ? { duration: 0 }
-    : { duration: 0.15, ease: [0.16, 1, 0.3, 1] };
+    : { duration: 0.15, ease: easeOut };
 
   const panelTransition = prefersReducedMotion
     ? { duration: 0 }
-    : { duration: 0.22, ease: [0.16, 1, 0.3, 1] };
+    : { duration: 0.22, ease: easeOut };
 
   const selected = useMemo(
     () => items.find((row) => row.audit_id === openId) || null,
