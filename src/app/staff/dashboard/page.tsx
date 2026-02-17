@@ -34,8 +34,8 @@ export default async function StaffDashboardPage() {
       prisma.foundItem.count({ where: { status: "CLAIMED" } }),
       prisma.claim.count({
         where: {
-          reviewed_at: { not: null },
           reviewed_at: {
+            not: null,
             gte: new Date(new Date().setHours(0, 0, 0, 0)),
           },
         },
