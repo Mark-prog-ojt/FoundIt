@@ -134,12 +134,12 @@ export function SuggestedMatches({ lostId }: { lostId: number }) {
               >
                 <Card className="group overflow-hidden rounded-3xl transition hover:-translate-y-0.5 hover:bg-accent/40 hover:shadow-sm">
                   <Link href={`/found/${m.found_id}`} className="block">
-                    <div className="relative aspect-[16/9]">
+                    <div className="relative aspect-[16/9] bg-muted/30">
                       <Image
                         src={img}
                         alt={m.item_name}
                         fill
-                        className="object-cover"
+                        className="object-contain p-3"
                         sizes="(max-width: 768px) 100vw, 33vw"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0" />
