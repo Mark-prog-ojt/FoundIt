@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -72,7 +72,7 @@ const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
   { value: "found_asc", label: "Oldest found date" },
 ];
 
-export default function FoundBrowsePage() {
+function FoundBrowseContent() {
   const searchParams = useSearchParams();
 
   const [session, setSession] = useState<SessionPayload | null>(null);
@@ -586,5 +586,13 @@ export default function FoundBrowsePage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function FoundBrowsePage() {
+  return (
+    <Suspense fallback={null}>
+      <FoundBrowseContent />
+    </Suspense>
   );
 }

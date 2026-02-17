@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -26,7 +26,7 @@ type FoundItem = {
   location: { location_name: string };
 };
 
-export default function NewClaimPage() {
+function NewClaimContent() {
   const sp = useSearchParams();
   const router = useRouter();
 
@@ -298,5 +298,13 @@ export default function NewClaimPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function NewClaimPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewClaimContent />
+    </Suspense>
   );
 }
